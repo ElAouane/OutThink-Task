@@ -186,5 +186,70 @@ tcp_ports = ["22", "31000", "31001"]
 This is the file where I store all the placeholders for terraform to spin up correctly.
 There is a ssh folder, where you can create a ssh key to log in to the instances.
 
+**commands to use for testing**
+
+inside terraform folder run:
+
+`terraform init`
+`terraform plan -var-file terraform.eks.tfvars` to check all the resources that will be created
+`terraform apply -var-file terraform.eks.tfvars` to create all resources (will take about 16min to finish
+
+![terraform result](terraform-result.png)
+
+at this point we need to configure our kubectl to connect to our cluster. to do so run the command:
+
+`aws eks --region eu-west-1 update-kubeconfig --name hamzaelaouane-eks-cluster` 
+
+the terminal should return context update arn:
+
+`Updated context arn:aws:eks:eu-west-1:569551094392:cluster/hamzaelaouane-eks-cluster in /home/nayden/.kube/config`
+
+![kube config](kubeconfig.png)
+
+*important* previous command might override the config file in your kube folder. If you want to append the new configuration use --kubeconfig. visit the following link for more info.
+
+`https://docs.aws.amazon.com/cli/latest/reference/eks/update-kubeconfig.html`
+
+Now we should be able to connect to out aws cluster. To make sure, run the command:
+`kubectl get pods -A` or 
+`kubectl get nodes`
+
+Finally last step, let deploy our pods to aws kubernetes.
+
+`cd` into `k8s` folder and run the command:
+
+`kubectl apply -f .`
+
+![kube apply](kube-apply.png)
+
+this will create and deploy all our services to aws cluster.
+
+lets test it.
+
+`kubectl get nodes -o wide | awk -F" " '{print $1"\t"$7}'`
+
+![nodes](kubenode-ip.png)
+
+this will print back all the EC2 instances IPs. take any of them and go to your browser.
+
+`<nodeIP>:31000` for the vote
+`<nodeIP>:31001` for the result.
+
+
+Once done, we can delete all the k8s node.  In k8s folder run the command:
+
+`kubectl delete -f .`
+
+and in terraform we can destroy all the infrastructure with:
+
+`terraform destroy -var-file terraform.eks.tfvars` , `yes` to confirm and wait for it to complete.
+
+
+Thank you.
+
+
+
+
+
 
 
